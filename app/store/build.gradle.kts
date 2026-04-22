@@ -5,7 +5,7 @@ plugins {
 
 ozone {
   androidLibrary {
-    namespace = "sh.christian.ozone.store"
+    namespace = "fyi.kittens.ozone.store"
   }
   js()
   jvm()

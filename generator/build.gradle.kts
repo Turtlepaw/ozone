@@ -34,14 +34,14 @@ dependencies {
 gradlePlugin {
   plugins {
     create("generator") {
-      id = "sh.christian.ozone.generator"
-      implementationClass = "sh.christian.ozone.api.gradle.LexiconGeneratorPlugin"
+      id = "fyi.kittens.ozone.generator"
+      implementationClass = "fyi.kittens.ozone.api.gradle.LexiconGeneratorPlugin"
     }
   }
 }
 
 buildConfig {
-  packageName("sh.christian.ozone.buildconfig")
+  packageName("fyi.kittens.ozone.buildconfig")
 
   useKotlinOutput {
     internalVisibility = true

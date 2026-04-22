@@ -54,7 +54,7 @@ jobs:
           echo "LEXICONS_VERSION_NAME=$LEXICONS_VERSION_NAME" >> "$GITHUB_ENV"
 
           sed -i "s/^POM_VERSION=.*/POM_VERSION=$LEXICONS_VERSION_NAME/" lexicons/gradle.properties
-          sed -i "s/sh\.christian\.ozone:lexicons:[0-9.]*/sh.christian.ozone:lexicons:$LEXICONS_VERSION_NAME/" README.md
+          sed -i "s/sh\.christian\.ozone:lexicons:[0-9.]*/fyi.kittens.ozone:lexicons:$LEXICONS_VERSION_NAME/" README.md
 
       - name: Publish to Sonatype
         if: steps.changed-files.outputs.files_changed == 'true'

@@ -1,0 +1,141 @@
+package fyi.kittens.ozone.model
+
+import app.bsky.notification.ListNotificationsNotification
+import app.bsky.notification.ListNotificationsNotificationReason.ContactMatch
+import app.bsky.notification.ListNotificationsNotificationReason.Follow
+import app.bsky.notification.ListNotificationsNotificationReason.Like
+import app.bsky.notification.ListNotificationsNotificationReason.LikeViaRepost
+import app.bsky.notification.ListNotificationsNotificationReason.Mention
+import app.bsky.notification.ListNotificationsNotificationReason.Quote
+import app.bsky.notification.ListNotificationsNotificationReason.Reply
+import app.bsky.notification.ListNotificationsNotificationReason.Repost
+import app.bsky.notification.ListNotificationsNotificationReason.RepostViaRepost
+import app.bsky.notification.ListNotificationsNotificationReason.StarterpackJoined
+import app.bsky.notification.ListNotificationsNotificationReason.SubscribedPost
+import app.bsky.notification.ListNotificationsNotificationReason.Unknown
+import app.bsky.notification.ListNotificationsNotificationReason.Unverified
+import app.bsky.notification.ListNotificationsNotificationReason.Verified
+import kotlinx.serialization.Serializable
+import fyi.kittens.ozone.api.AtUri
+import fyi.kittens.ozone.api.Cid
+import fyi.kittens.ozone.model.Notification.Content.Followed
+import fyi.kittens.ozone.model.Notification.Content.JoinedStarterPack
+import fyi.kittens.ozone.model.Notification.Content.Liked
+import fyi.kittens.ozone.model.Notification.Content.LikedViaRepost
+import fyi.kittens.ozone.model.Notification.Content.Mentioned
+import fyi.kittens.ozone.model.Notification.Content.Quoted
+import fyi.kittens.ozone.model.Notification.Content.RepliedTo
+import fyi.kittens.ozone.model.Notification.Content.Reposted
+import fyi.kittens.ozone.model.Notification.Content.RepostedViaRepost
+import fyi.kittens.ozone.model.Notification.Content.UserUnverified
+import fyi.kittens.ozone.model.Notification.Content.UserVerified
+import fyi.kittens.ozone.notifications.NotificationsRepository.Companion.getPostUri
+import fyi.kittens.ozone.util.ReadOnlyList
+
+@Serializable
+data class Notifications(
+  val list: ReadOnlyList<Notification>,
+  val cursor: String?,
+)
+
+@Serializable
+data class Notification(
+  val uri: AtUri,
+  val cid: Cid,
+  val author: Profile,
+  val reason: Reason,
+  val reasonSubject: AtUri?,
+  val content: Content?,
+  val isRead: Boolean,
+  val indexedAt: Moment,
+) {
+  sealed interface Content {
+    data class Liked(
+      val post: TimelinePost,
+    ) : Content
+
+    data class Reposted(
+      val post: TimelinePost,
+    ) : Content
+
+    data object Followed : Content
+
+    data class Mentioned(
+      val post: TimelinePost,
+    ) : Content
+
+    data class RepliedTo(
+      val post: TimelinePost,
+    ) : Content
+
+    data class Quoted(
+      val post: TimelinePost,
+    ) : Content
+
+    data object JoinedStarterPack : Content
+
+    data object UserVerified : Content
+
+    data object UserUnverified : Content
+
+    data class LikedViaRepost(
+      val post: TimelinePost,
+    ) : Content
+
+    data class RepostedViaRepost(
+      val post: TimelinePost,
+    ) : Content
+  }
+
+  enum class Reason {
+    UNKNOWN,
+    LIKE,
+    REPOST,
+    FOLLOW,
+    MENTION,
+    REPLY,
+    QUOTE,
+    JOINED_STARTERPACK,
+    VERIFIED,
+    UNVERIFIED,
+    LIKE_VIA_REPOST,
+    REPOST_VIA_REPOST,
+  }
+}
+
+fun ListNotificationsNotification.toNotification(
+  postsByUri: Map<AtUri, TimelinePost>,
+): Notification? {
+  val notificationPost by lazy {
+    val postUri = getPostUri()!!
+    postsByUri[postUri]
+  }
+
+  val (notificationReason, content) = when (reason) {
+    is Unknown -> return null
+    is Like -> Notification.Reason.LIKE to notificationPost?.let(::Liked)
+    is Repost -> Notification.Reason.REPOST to notificationPost?.let(::Reposted)
+    is Follow -> Notification.Reason.FOLLOW to Followed
+    is Mention -> Notification.Reason.MENTION to notificationPost?.let(::Mentioned)
+    is Reply -> Notification.Reason.REPLY to notificationPost?.let(::RepliedTo)
+    is Quote -> Notification.Reason.QUOTE to notificationPost?.let(::Quoted)
+    is StarterpackJoined -> Notification.Reason.JOINED_STARTERPACK to JoinedStarterPack
+    is Verified -> Notification.Reason.VERIFIED to UserVerified
+    is Unverified -> Notification.Reason.UNVERIFIED to UserUnverified
+    is LikeViaRepost -> Notification.Reason.LIKE_VIA_REPOST to notificationPost?.let(::LikedViaRepost)
+    is RepostViaRepost -> Notification.Reason.REPOST_VIA_REPOST to notificationPost?.let(::RepostedViaRepost)
+    is SubscribedPost -> return null
+    is ContactMatch -> return null
+  }
+
+  return Notification(
+    uri = uri,
+    cid = cid,
+    author = author.toProfile(),
+    reason = notificationReason,
+    reasonSubject = reasonSubject,
+    content = content,
+    isRead = isRead,
+    indexedAt = Moment(indexedAt),
+  )
+}

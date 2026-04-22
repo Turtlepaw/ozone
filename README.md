@@ -1,4 +1,4 @@
-![Maven Central](https://img.shields.io/maven-central/v/sh.christian.ozone/bluesky?versionPrefix=0.3.3) ![CI](https://github.com/christiandeange/ozone/actions/workflows/ci.yml/badge.svg)
+![Maven Central](https://img.shields.io/maven-central/v/fyi.kittens.ozone/bluesky?versionPrefix=0.3.3) ![CI](https://github.com/christiandeange/ozone/actions/workflows/ci.yml/badge.svg)
 
 ozone
 =====
@@ -38,7 +38,7 @@ Documentation is available at [ozone.christian.sh](https://ozone.christian.sh).
 // build.gradle[.kts]
 
 dependencies {
-  api("sh.christian.ozone:bluesky:0.3.3")
+  api("fyi.kittens.ozone:bluesky:0.3.3")
 }
 ```
 
@@ -48,7 +48,7 @@ In Xcode, select **File > Add Packages** and enter https://github.com/christiand
 
 ### OAuth Client
 
-Documentation is available at [ozone.christian.sh](http://ozone.christian.sh) in the [sh.christian.ozone.oauth](https://ozone.christian.sh/ozone/sh.christian.ozone.oauth/index.html) package.
+Documentation is available at [ozone.christian.sh](http://ozone.christian.sh) in the [fyi.kittens.ozone.oauth](https://ozone.christian.sh/ozone/fyi.kittens.ozone.oauth/index.html) package.
 
 #### Java / Kotlin
 
@@ -56,13 +56,13 @@ Documentation is available at [ozone.christian.sh](http://ozone.christian.sh) in
 // build.gradle[.kts]
 
 dependencies {
-  api("sh.christian.ozone:oauth:0.3.3")
+  api("fyi.kittens.ozone:oauth:0.3.3")
 }
 ```
 
 ### Jetstream Bindings
 
-Documentation is available at [ozone.christian.sh](http://ozone.christian.sh) in the [sh.christian.ozone.jetstream](https://ozone.christian.sh/ozone/sh.christian.ozone.jetstream/index.html) package.
+Documentation is available at [ozone.christian.sh](http://ozone.christian.sh) in the [fyi.kittens.ozone.jetstream](https://ozone.christian.sh/ozone/fyi.kittens.ozone.jetstream/index.html) package.
 
 #### Java / Kotlin
 
@@ -70,7 +70,7 @@ Documentation is available at [ozone.christian.sh](http://ozone.christian.sh) in
 // build.gradle[.kts]
 
 dependencies {
-  api("sh.christian.ozone:jetstream:0.3.3")
+  api("fyi.kittens.ozone:jetstream:0.3.3")
 }
 ```
 
@@ -82,7 +82,7 @@ In addition to shipping the lexicons that define the official Bluesky API, this 
 // build.gradle[.kts]
 
 plugins {
-  id("sh.christian.ozone.generator") version "0.3.3"
+  id("fyi.kittens.ozone.generator") version "0.3.3"
 }
 
 dependencies {
@@ -90,11 +90,11 @@ dependencies {
   lexicons(fileTree("lexicons") { include("**/*.json") })
 
   // You can also depend directly on the published Bluesky lexicons instead.
-  lexicons("sh.christian.ozone:lexicons:2026.04.21")
+  lexicons("fyi.kittens.ozone:lexicons:2026.04.21")
 }
 
 lexicons {
-  // Determines the package name of generated supporting methods. Defaults to "sh.christian.ozone".
+  // Determines the package name of generated supporting methods. Defaults to "fyi.kittens.ozone".
   namespace.set("com.example.myapp")
 
    // Configuration for how to handle unknown types and known values.
@@ -112,7 +112,7 @@ lexicons {
   // Generates an additional interface for the target schemas.
   // This method can be called more than once to generate multiple API interfaces.
   generateApi("BlueskyApi") {
-    // Determines the package name of the generated API. Defaults to "sh.christian.ozone".
+    // Determines the package name of the generated API. Defaults to "fyi.kittens.ozone".
     packageName.set("com.example.myapp")
 
     // Generates an additional class that implements this interface by sending corresponding

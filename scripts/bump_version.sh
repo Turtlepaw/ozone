@@ -22,7 +22,7 @@ elif ! [[ "${NEXT_RELEASE}" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
   exit 1
 fi
 
-LAST_RELEASE="$(awk -F\" '/sh.christian.ozone:bluesky/ { print $4 }' < gradle/libs.versions.toml)"
+LAST_RELEASE="$(awk -F\" '/fyi.kittens.ozone:bluesky/ { print $4 }' < gradle/libs.versions.toml)"
 
 properties_files="$(find . -name gradle.properties)"
 for file in $properties_files; do

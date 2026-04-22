@@ -5,10 +5,10 @@ plugins {
 
 ozone {
   androidApp {
-    namespace = "sh.christian.ozone"
+    namespace = "fyi.kittens.ozone"
 
     defaultConfig {
-      applicationId = "sh.christian.ozone"
+      applicationId = "fyi.kittens.ozone"
       versionCode = 100
       versionName = version.toString()
     }

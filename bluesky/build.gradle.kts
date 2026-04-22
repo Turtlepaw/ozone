@@ -1,14 +1,14 @@
 import org.jetbrains.dokka.gradle.tasks.DokkaBaseTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import sh.christian.ozone.api.generator.ApiReturnType
+import fyi.kittens.ozone.api.generator.ApiReturnType
 
 plugins {
   id("ozone-dokka")
   id("ozone-multiplatform")
   id("ozone-publish")
   id("co.touchlab.kmmbridge")
-  id("sh.christian.ozone.generator")
+  id("fyi.kittens.ozone.generator")
 }
 
 ozone {
@@ -34,7 +34,7 @@ dependencies {
 }
 
 lexicons {
-  namespace.set("sh.christian.ozone.api.xrpc")
+  namespace.set("fyi.kittens.ozone.api.xrpc")
 
   defaults {
     generateUnknownsForSealedTypes.set(true)
@@ -42,7 +42,7 @@ lexicons {
   }
 
   generateApi("BlueskyApi") {
-    packageName.set("sh.christian.ozone")
+    packageName.set("fyi.kittens.ozone")
     withKtorImplementation("XrpcBlueskyApi")
     returnType.set(ApiReturnType.Response)
   }

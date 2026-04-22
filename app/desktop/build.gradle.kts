@@ -24,7 +24,7 @@ kotlin {
 
 compose.desktop {
   application {
-    mainClass = "sh.christian.ozone.MainKt"
+    mainClass = "fyi.kittens.ozone.MainKt"
 
     nativeDistributions {
       targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

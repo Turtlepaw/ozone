@@ -1,0 +1,179 @@
+package fyi.kittens.ozone.notifications
+
+import app.bsky.feed.GetPostsQueryParams
+import app.bsky.notification.ListNotificationsNotification
+import app.bsky.notification.ListNotificationsNotificationReason
+import app.bsky.notification.ListNotificationsQueryParams
+import app.bsky.notification.ListNotificationsResponse
+import app.bsky.notification.UpdateSeenRequest
+import kotlinx.atomicfu.atomic
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.time.Instant
+import me.tatarka.inject.annotations.Inject
+import fyi.kittens.ozone.api.ApiProvider
+import fyi.kittens.ozone.api.AtUri
+import fyi.kittens.ozone.api.response.AtpResponse
+import fyi.kittens.ozone.app.Supervisor
+import fyi.kittens.ozone.di.SingleInApp
+import fyi.kittens.ozone.error.ErrorProps
+import fyi.kittens.ozone.error.toErrorProps
+import fyi.kittens.ozone.login.LoginRepository
+import fyi.kittens.ozone.model.Notifications
+import fyi.kittens.ozone.model.TimelinePost
+import fyi.kittens.ozone.model.toNotification
+import fyi.kittens.ozone.model.toPost
+import fyi.kittens.ozone.util.mapNotNullImmutable
+import fyi.kittens.ozone.util.toReadOnlyList
+import kotlin.time.Duration.Companion.minutes
+
+@Inject
+@SingleInApp
+class NotificationsRepository(
+  private val apiProvider: ApiProvider,
+  private val loginRepository: LoginRepository,
+) : Supervisor() {
+  private val latest: MutableStateFlow<Notifications> = MutableStateFlow(EMPTY_VALUE)
+  private val loadErrors: MutableSharedFlow<ErrorProps> = MutableSharedFlow()
+  private val onUpdateSeen: MutableSharedFlow<Unit> = MutableSharedFlow()
+  private val doNotRefreshInstances = atomic(0)
+
+  val notifications: Flow<Notifications> = latest
+  val errors: Flow<ErrorProps> = loadErrors
+
+  val unreadCount: Flow<Int> = merge(
+    latest.map { it.list.count { notification -> !notification.isRead } },
+    onUpdateSeen.map { 0 },
+  )
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override suspend fun CoroutineScope.onStart() {
+    loginRepository.authFlow()
+      .flatMapLatest { auth ->
+        if (auth != null) {
+          flow {
+            while (currentCoroutineContext().isActive) {
+              emit(Unit)
+              delay(1.minutes)
+            }
+          }
+        } else {
+          latest.value = EMPTY_VALUE
+          emptyFlow()
+        }
+      }
+      .collect {
+        if (doNotRefreshInstances.value == 0) {
+          refresh()
+        }
+      }
+  }
+
+  suspend fun refresh() {
+    load(null)
+  }
+
+  suspend fun loadMore() {
+    load(latest.value.cursor)
+  }
+
+  suspend fun doNotRefreshWhileActive() {
+    try {
+      doNotRefreshInstances.incrementAndGet()
+
+      // Hang forever, or until this coroutine is cancelled.
+      suspendCancellableCoroutine<Nothing> { }
+    } finally {
+      doNotRefreshInstances.decrementAndGet()
+    }
+  }
+
+  suspend fun updateSeenAt(time: Instant) {
+    apiProvider.api.updateSeen(UpdateSeenRequest(time)).requireResponse()
+    onUpdateSeen.emit(Unit)
+  }
+
+  private suspend fun load(cursor: String?) {
+    val response: AtpResponse<ListNotificationsResponse> = apiProvider.api
+      .listNotifications(ListNotificationsQueryParams(limit = 25, cursor = cursor))
+
+    when (response) {
+      is AtpResponse.Success -> {
+        val posts = fetchPosts(response.response).associateBy { it.uri }
+
+        val newNotifications = Notifications(
+          list = response.response.notifications.mapNotNullImmutable { it.toNotification(posts) },
+          cursor = response.response.cursor,
+        )
+
+        val mergedNotifications = if (cursor != null) {
+          Notifications(
+            list = (latest.value.list + newNotifications.list).toReadOnlyList(),
+            cursor = newNotifications.cursor,
+          )
+        } else {
+          newNotifications
+        }
+
+        latest.value = mergedNotifications
+      }
+      is AtpResponse.Failure -> {
+        loadErrors.emit(
+          response.toErrorProps(true)
+            ?: ErrorProps("Oops.", "Could not load notifications", true)
+        )
+      }
+    }
+  }
+
+  private suspend fun fetchPosts(response: ListNotificationsResponse): List<TimelinePost> {
+    val postUris = response.notifications
+      .mapNotNull { it.getPostUri() }
+      .distinct()
+      .toReadOnlyList()
+
+    return if (postUris.isEmpty()) {
+      emptyList()
+    } else {
+      apiProvider.api
+        .getPosts(GetPostsQueryParams(postUris))
+        .requireResponse()
+        .posts
+        .map { it.toPost() }
+    }
+  }
+
+  companion object {
+    private val EMPTY_VALUE = Notifications(persistentListOf(), null)
+
+    fun ListNotificationsNotification.getPostUri(): AtUri? = when (reason) {
+      is ListNotificationsNotificationReason.Unknown -> null
+      is ListNotificationsNotificationReason.Like -> reasonSubject
+      is ListNotificationsNotificationReason.Repost -> reasonSubject
+      is ListNotificationsNotificationReason.Mention -> uri
+      is ListNotificationsNotificationReason.Reply -> uri
+      is ListNotificationsNotificationReason.Quote -> uri
+      is ListNotificationsNotificationReason.Follow -> null
+      is ListNotificationsNotificationReason.StarterpackJoined -> null
+      is ListNotificationsNotificationReason.Verified -> null
+      is ListNotificationsNotificationReason.Unverified -> null
+      is ListNotificationsNotificationReason.LikeViaRepost -> reasonSubject
+      is ListNotificationsNotificationReason.RepostViaRepost -> reasonSubject
+      is ListNotificationsNotificationReason.SubscribedPost -> null
+      is ListNotificationsNotificationReason.ContactMatch -> null
+    }
+  }
+}

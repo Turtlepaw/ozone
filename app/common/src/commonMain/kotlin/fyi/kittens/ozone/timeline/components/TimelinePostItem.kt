@@ -1,0 +1,70 @@
+package fyi.kittens.ozone.timeline.components
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement.spacedBy
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import fyi.kittens.ozone.model.Moment
+import fyi.kittens.ozone.model.Profile
+import fyi.kittens.ozone.model.TimelinePost
+import fyi.kittens.ozone.thread.ThreadProps
+import fyi.kittens.ozone.ui.compose.AvatarImage
+import fyi.kittens.ozone.ui.compose.OpenImageAction
+import fyi.kittens.ozone.user.UserDid
+import fyi.kittens.ozone.user.UserReference
+import fyi.kittens.ozone.util.color
+import fyi.kittens.ozone.util.format
+
+@Composable
+fun TimelinePostItem(
+  modifier: Modifier = Modifier,
+  now: Moment,
+  post: TimelinePost,
+  onOpenPost: (ThreadProps) -> Unit,
+  onOpenUser: (UserReference) -> Unit,
+  onOpenImage: (OpenImageAction) -> Unit,
+  onReplyToPost: () -> Unit,
+) {
+  Row(
+    modifier = modifier
+      .clickable { onOpenPost(ThreadProps.FromPost(post)) }
+      .padding(top = 16.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+    horizontalArrangement = spacedBy(16.dp),
+  ) {
+    val author: Profile = post.author
+    AvatarImage(
+      modifier = Modifier.size(48.dp),
+      avatarUrl = author.avatar,
+      onClick = { onOpenUser(UserDid(author.did)) },
+      contentDescription = author.displayName ?: author.handle.handle,
+      fallbackColor = author.handle.color(),
+    )
+
+    Column(Modifier.weight(1f)) {
+      PostHeadline(now, post.createdAt, author)
+      PostReasonLine(post.reason, onOpenUser)
+      PostReplyLine(post.reply?.parent?.author, onOpenUser)
+      Column(
+        modifier = Modifier.padding(bottom = 8.dp),
+        verticalArrangement = spacedBy(8.dp),
+      ) {
+        PostText(post, { onOpenPost(ThreadProps.FromPost(post)) }, onOpenUser)
+        PostFeature(now, post.feature, onOpenImage, onOpenPost)
+      }
+      PostActions(
+        replyCount = format(post.replyCount),
+        repostCount = format(post.repostCount),
+        likeCount = format(post.likeCount),
+        reposted = post.reposted,
+        liked = post.liked,
+        iconSize = 16.dp,
+        onReplyToPost = onReplyToPost,
+      )
+    }
+  }
+}

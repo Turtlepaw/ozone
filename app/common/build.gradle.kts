@@ -9,7 +9,7 @@ plugins {
 
 ozone {
   androidLibrary {
-    namespace = "sh.christian.ozone.common"
+    namespace = "fyi.kittens.ozone.common"
 
     composeOptions {
       kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
