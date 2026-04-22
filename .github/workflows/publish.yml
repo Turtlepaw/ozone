@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
   pages: write
   id-token: write
 
@@ -38,13 +37,6 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKey="$ARTIFACT_SIGNING_PRIVATE_KEY" \
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword="$ARTIFACT_SIGNING_PRIVATE_KEY_PASSWORD" \
           ./gradlew clean publish :generator:publish -x :lexicons:publish --no-daemon --stacktrace
-
-      - name: Publish Release to GitHub Packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
-        run: |
-          ./gradlew publishAllPublicationsToGitHubPackagesRepository :generator:publishAllPublicationsToGitHubPackagesRepository -x :lexicons:publishAllPublicationsToGitHubPackagesRepository --no-daemon --stacktrace
 
   deploy-release-docs:
     uses: ./.github/workflows/deploy_docs.yml

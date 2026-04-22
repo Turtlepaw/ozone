@@ -4,7 +4,6 @@ import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import kotlinx.validation.ApiValidationExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.publish.PublishingExtension
 import org.gradle.kotlin.dsl.configure
 
 @Suppress("UnstableApiUsage", "unused")
@@ -62,22 +61,6 @@ class PublishingPlugin : Plugin<Project> {
 
       publishToMavenCentral(automaticRelease = true)
       signAllPublications()
-    }
-
-    target.extensions.configure<PublishingExtension> {
-      repositories {
-        maven {
-          name = "GitHubPackages"
-          val githubRepository = target.findProperty("gpr.repo") as String?
-            ?: System.getenv("GITHUB_REPOSITORY")
-            ?: "Turtlepaw/ozone"
-          url = target.uri("https://maven.pkg.github.com/$githubRepository")
-          credentials {
-            username = target.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
-            password = target.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
-          }
-        }
-      }
     }
   }
 
