@@ -1,5 +1,5 @@
 [versions]
-agp = "8.12.3"
+agp = "9.2.1"
 buildconfig = "5.5.0"
 compose-compiler = "1.5.15"
 compose-jb = "1.9.3"
@@ -39,7 +39,7 @@ apache-commons = { module = "org.apache.commons:commons-lang3", version = "3.20.
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version = "2.0.17" }
 
 kotlininject = { module = "me.tatarka.inject:kotlin-inject-runtime", version.ref = "kotlininject" }
-kotlininject-compiler = { module = "me.tatarka.inject:kotlin-inject-compiler-ksp", version.ref = "kotlininject" }
+kotlininject-compiler = { module = \"me.tatarka.inject:kotlin-inject-compiler-ksp\", version.ref = \"kotlininject\" }
 
 kotlinpoet = { module = "com.squareup:kotlinpoet", version = "2.2.0" }
 moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
