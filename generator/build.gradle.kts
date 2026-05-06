@@ -1,6 +1,8 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
   kotlin("jvm") version libs.versions.kotlin
+  kotlin("multiplatform") version libs.versions.kotlin apply false
+  kotlin("plugin.serialization") version libs.versions.kotlin apply false
   id("ozone-base")
   id("ozone-publish")
   id("com.github.gmazzo.buildconfig") version libs.versions.buildconfig
