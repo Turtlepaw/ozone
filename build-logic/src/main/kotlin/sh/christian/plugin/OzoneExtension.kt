@@ -1,7 +1,7 @@
 package sh.christian.plugin
 
-import com.android.build.gradle.AppExtension
-import com.android.build.gradle.LibraryExtension
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -30,7 +30,7 @@ abstract class OzoneExtension(
     project.extensions.configure(configure)
   }
 
-  fun androidApp(configure: AppExtension.() -> Unit = {}) {
+  fun androidApp(configure: ApplicationExtension.() -> Unit = {}) {
     project.plugins.apply("com.android.application")
     project.plugins.apply("ozone-android")
     kotlin {
