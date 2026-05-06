@@ -35,7 +35,8 @@ private fun Project.applyPlugin() {
     }
   }
 
+  val dokkaConfig = rootProject.configurations.findByName("dokka") ?: rootProject.configurations.create("dokka")
   rootProject.dependencies {
-    add("dokka", project(path))
+    add(dokkaConfig.name, project(path))
   }
 }
