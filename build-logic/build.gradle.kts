@@ -15,9 +15,9 @@ dependencies {
   implementation(libs.kotlinx.abi)
   implementation(libs.maven.publish)
 
-  compileOnly(libs.agp)
-  compileOnly(libs.dokka)
-  compileOnly(kotlin("gradle-plugin"))
+  implementation(libs.agp)
+  implementation(libs.dokka)
+  implementation(kotlin("gradle-plugin"))
 }
 
 gradlePlugin {
