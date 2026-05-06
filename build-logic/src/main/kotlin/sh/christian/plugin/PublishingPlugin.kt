@@ -16,10 +16,10 @@ class PublishingPlugin : Plugin<Project> {
     target.group = groupId
     target.version = version
 
-    target.plugins.apply("org.jetbrains.kotlinx.binary-compatibility-validator")
+    target.rootProject.plugins.apply("org.jetbrains.kotlinx.binary-compatibility-validator")
     target.plugins.apply("com.vanniktech.maven.publish")
 
-    target.extensions.configure<ApiValidationExtension> {
+    target.rootProject.extensions.configure<ApiValidationExtension> {
       nonPublicMarkers += "kotlin.Deprecated"
     }
 
