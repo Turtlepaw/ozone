@@ -27,6 +27,9 @@ plugins {
 rootProject.name = "generator"
 
 include(":api-gen-runtime")
+project(":api-gen-runtime").projectDir = file("../api-gen-runtime")
+
 include(":api-gen-runtime-internal")
+project(":api-gen-runtime-internal").projectDir = file("../api-gen-runtime-internal")
 
 includeBuild("../build-logic")
